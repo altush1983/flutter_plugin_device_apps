@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import fr.g123k.deviceapps.listener.DeviceAppsChangedListener;
 import fr.g123k.deviceapps.listener.DeviceAppsChangedListenerInterface;
@@ -164,7 +165,7 @@ public class DeviceAppsPlugin implements
         }
 
         PackageManager packageManager = context.getPackageManager();
-        List<PackageInfo> apps = packageManager.getInstalledPackages(0);
+        List<PackageInfo> apps = packageManager.getInstalledPackages(PackageManager.GET_PERMISSIONS);
         List<Map<String, Object>> installedApps = new ArrayList<>(apps.size());
 
         for (PackageInfo packageInfo : apps) {
@@ -235,7 +236,7 @@ public class DeviceAppsPlugin implements
     private Map<String, Object> getApp(String packageName, boolean includeAppIcon) {
         try {
             PackageManager packageManager = context.getPackageManager();
-            PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
+            PackageInfo packageInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
 
             return getAppData(packageManager,
                     packageInfo,
@@ -261,6 +262,12 @@ public class DeviceAppsPlugin implements
         map.put(AppDataConstants.INSTALL_TIME, pInfo.firstInstallTime);
         map.put(AppDataConstants.UPDATE_TIME, pInfo.lastUpdateTime);
         map.put(AppDataConstants.IS_ENABLED, applicationInfo.enabled);
+
+        String[] permissions = pInfo.requestedPermissions;
+        if (permissions == null) {
+            permissions = new String[]{};
+        }
+        map.put(AppDataConstants.PERMISSIONS, String.join("\n", permissions));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             map.put(AppDataConstants.CATEGORY, pInfo.applicationInfo.category);

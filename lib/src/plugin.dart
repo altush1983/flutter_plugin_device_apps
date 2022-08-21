@@ -232,6 +232,8 @@ class Application extends _BaseApplication {
   final bool enabled;
 
   final String? installerName;
+  
+  final List<String> permissions;
 
   InstallerSource get installerSource {
     if (systemApp) return InstallerSource.system;
@@ -282,6 +284,7 @@ class Application extends _BaseApplication {
         enabled = map['is_enabled'] as bool,
         category = _parseCategory(map['category']),
         installerName = map['installer_name'] as String?,
+        permissions = (map['permissions'] as String).split('\n'),
         super._fromMap(map);
 
   /// Mapping of Android categories
