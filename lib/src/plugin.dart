@@ -180,6 +180,18 @@ class _BaseApplication {
       : packageName = map['package_name'] as String;
 }
 
+enum InstallerSource {
+  unknown,
+  google,
+  amazon,
+  samsung,
+  xiaomi,
+  huawei,
+  huaweiFastApp,
+  lg,
+  system,
+}
+
 /// An application installed on the device
 /// Depending on the Android version, some attributes may not be available
 class Application extends _BaseApplication {
@@ -219,6 +231,34 @@ class Application extends _BaseApplication {
   /// or disabled (installed, but not visible)
   final bool enabled;
 
+  final String? installerName;
+
+  InstallerSource get installerSource {
+    if (systemApp) return InstallerSource.system;
+    switch (installerName) {
+      case 'com.android.vending':
+        return InstallerSource.google;
+      case 'com.amazon.venezia':
+        return InstallerSource.amazon;
+      case 'com.sec.android.app.samsungapps':
+      case 'com.samsung.android.app.updatecenter':
+        return InstallerSource.samsung;
+      case 'com.xiaomi.market':
+        return InstallerSource.xiaomi;
+      case 'com.huawei.appmarket':
+        return InstallerSource.huawei;
+      case 'com.huawei.fastapp':
+        return InstallerSource.huaweiFastApp;
+      case 'com.lge.lgworld':
+        return InstallerSource.lg;
+      case 'system':
+        return InstallerSource.system;
+      case null:
+      default:
+        return InstallerSource.unknown;
+    }
+  }
+
   factory Application._(Map<dynamic, dynamic> map) {
     if (map.length == 0) {
       throw Exception('The map can not be null!');
@@ -241,6 +281,7 @@ class Application extends _BaseApplication {
         updateTimeMillis = map['update_time'] as int,
         enabled = map['is_enabled'] as bool,
         category = _parseCategory(map['category']),
+        installerName = map['installer_name'] as String?,
         super._fromMap(map);
 
   /// Mapping of Android categories
@@ -304,7 +345,8 @@ class Application extends _BaseApplication {
         'installTimeMillis: $installTimeMillis, '
         'updateTimeMillis: $updateTimeMillis, '
         'category: $category, '
-        'enabled: $enabled'
+        'enabled: $enabled, '
+        'installerName: $installerName'
         '}';
   }
 
@@ -323,7 +365,8 @@ class Application extends _BaseApplication {
           installTimeMillis == other.installTimeMillis &&
           updateTimeMillis == other.updateTimeMillis &&
           category == other.category &&
-          enabled == other.enabled;
+          enabled == other.enabled &&
+          installerName == other.installerName;
 
   @override
   int get hashCode =>
@@ -337,7 +380,8 @@ class Application extends _BaseApplication {
       installTimeMillis.hashCode ^
       updateTimeMillis.hashCode ^
       category.hashCode ^
-      enabled.hashCode;
+      enabled.hashCode ^
+      installerName.hashCode;
 }
 
 /// If the [includeAppIcons] attribute is provided, this class will be used.

@@ -3,6 +3,7 @@ package fr.g123k.deviceapps;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.InstallSourceInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -263,6 +264,18 @@ public class DeviceAppsPlugin implements
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             map.put(AppDataConstants.CATEGORY, pInfo.applicationInfo.category);
+        }
+
+        try {
+            String installerName;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                InstallSourceInfo info = packageManager.getInstallSourceInfo(pInfo.packageName);
+                installerName = info.getInstallingPackageName();
+            } else {
+                installerName = packageManager.getInstallerPackageName(pInfo.packageName);
+            }
+            map.put(AppDataConstants.INSTALLER_NAME, installerName);
+        } catch (PackageManager.NameNotFoundException ignored) {
         }
 
         if (includeAppIcon) {
