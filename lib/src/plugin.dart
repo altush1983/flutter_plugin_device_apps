@@ -62,6 +62,16 @@ class DeviceApps {
     }
   }
 
+  static Future<List<String>> getInstalledPackages({
+    bool includeSystemApps: false,
+  }) async {
+    final apps = await _methodChannel.invokeMethod('getInstalledPackages', <String, bool>{
+      'system': includeSystemApps,
+    });
+
+    return (apps as Iterable).cast<String>().toList(growable: false);
+  }
+
   /// Provide all information for a given app by its [packageName]
   /// [includeAppIcon] will also include the icon for the app.
   /// To get it, you have to cast the object to [ApplicationWithIcon].

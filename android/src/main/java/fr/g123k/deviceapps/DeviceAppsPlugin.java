@@ -97,6 +97,11 @@ public class DeviceAppsPlugin implements
                     }
                 });
                 break;
+            case "getInstalledPackages":
+                boolean systemPackages = call.hasArgument("system") && (Boolean) (call.argument("system"));
+                fetchInstalledPackages(systemPackages, apps ->
+                        new Handler(Looper.getMainLooper()).post(() -> result.success(apps)));
+                break;
             case "getApp":
                 if (!call.hasArgument("package_name") || TextUtils.isEmpty(call.argument("package_name").toString())) {
                     result.error("ERROR", "Empty or null package name", null);
@@ -158,6 +163,16 @@ public class DeviceAppsPlugin implements
         });
     }
 
+    private void fetchInstalledPackages(final boolean includeSystemApps, final InstalledPackagesCallback callback) {
+        asyncWork.run(() -> {
+            List<String> installedPackages = getInstalledPackages(includeSystemApps);
+
+            if (callback != null) {
+                callback.onInstalledPackagesAvailable(installedPackages);
+            }
+        });
+    }
+
     private List<Map<String, Object>> getInstalledApps(boolean includeSystemApps, boolean includeAppIcons, boolean onlyAppsWithLaunchIntent) {
         if (context == null) {
             Log.e(LOG_TAG, "Context is null");
@@ -181,6 +196,27 @@ public class DeviceAppsPlugin implements
                     packageInfo.applicationInfo,
                     includeAppIcons);
             installedApps.add(map);
+        }
+
+        return installedApps;
+    }
+
+    private List<String> getInstalledPackages(boolean includeSystemApps) {
+        if (context == null) {
+            Log.e(LOG_TAG, "Context is null");
+            return new ArrayList<>(0);
+        }
+
+        PackageManager packageManager = context.getPackageManager();
+        List<PackageInfo> apps = packageManager.getInstalledPackages(PackageManager.GET_PERMISSIONS);
+        List<String> installedApps = new ArrayList<>(apps.size());
+
+        for (PackageInfo packageInfo : apps) {
+            if (!includeSystemApps && isSystemApp(packageInfo)) {
+                continue;
+            }
+
+            installedApps.add(packageInfo.packageName);
         }
 
         return installedApps;
