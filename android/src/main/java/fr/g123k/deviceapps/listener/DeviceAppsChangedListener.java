@@ -25,10 +25,6 @@ public class DeviceAppsChangedListener {
     }
 
     public void register(@NonNull Context context, EventChannel.EventSink events) {
-        if (appsBroadcastReceiver == null) {
-            createBroadcastReceiver();
-        }
-
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
         intentFilter.addAction(Intent.ACTION_PACKAGE_REPLACED);
@@ -38,7 +34,10 @@ public class DeviceAppsChangedListener {
 
         sinks.add(events);
 
-        context.registerReceiver(appsBroadcastReceiver, intentFilter);
+        if (appsBroadcastReceiver == null) {
+            createBroadcastReceiver();
+            context.registerReceiver(appsBroadcastReceiver, intentFilter);
+        }
     }
 
     private void createBroadcastReceiver() {
@@ -101,6 +100,7 @@ public class DeviceAppsChangedListener {
     public void unregister(@NonNull Context context) {
         if (appsBroadcastReceiver != null) {
             context.unregisterReceiver(appsBroadcastReceiver);
+            appsBroadcastReceiver = null;
         }
 
         sinks.clear();
